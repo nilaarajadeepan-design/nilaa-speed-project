@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Speed Sign Detector</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+</head>
+
+<body>
+  <h1>Speed Sign Detector</h1>
+  <video id="webcam" autoplay playsinline width="300"></video>
+  <p id="result">Loading...</p>
+
+  <script>
+    const URL = "https://teachablemachine.withgoogle.com/models/Fq-QnfT4E/";
+
+    let model, webcam;
+
+    async function init() {
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
+      model = await tmImage.load(modelURL, metadataURL);
+
+      webcam = document.getElementById("webcam");
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          webcam.srcObject = stream;
+          loop();
+        });
+    }
+
+    async function loop() {
+      const prediction = await model.predict(webcam);
+      let topClass = prediction.sort((a,b)=>b.probability-a.probability)[0];
+
+      document.getElementById("result").innerText =
+        `${topClass.className} (${Math.round(topClass.probability*100)}%)`;
+
+      requestAnimationFrame(loop);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
